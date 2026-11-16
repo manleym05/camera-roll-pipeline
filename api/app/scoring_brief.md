@@ -4,7 +4,8 @@ Folder: `<repo>\data\scoring`
 
 For each event packet you're given (`<event_id>.json`):
 
-1. Read the scoring guide: `<repo>\api\app\rubric.md`. Follow it exactly.
+1. Read the scoring guide at `<repo>\api\app\rubric.md` and follow it exactly.
+   That file is not in the repo — you write it. See 'Configuring it for you' in the README.
 2. Read the packet. Each entry in `candidates` has a `ref` (c1, c2, ...), time, phone owner, kind, face count, CLIP tags and a `thumb` path.
 3. View **every** thumbnail with the Read tool (they're JPEGs, ~576x768). Don't skip any, and don't guess from tags.
 4. Write `<event_id>.result.json` in the same folder: one JSON object matching `schema.json`:

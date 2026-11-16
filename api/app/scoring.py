@@ -1,6 +1,6 @@
 """Claude scoring and event naming, decoupled from who runs the model.
 
-    export: one packet per event (rubric + candidate labels + thumbnail paths) in data/scoring/
+    export: one packet per event (candidate labels + thumbnail paths) in data/scoring/
     a scorer (Claude Code subagents today; an API batch job later) writes <event_id>.result.json
     import: validate each result against EventScore and write candidates + event name
 
@@ -19,7 +19,6 @@ from sqlalchemy.orm import Session
 from app.config import REPO_ROOT, settings
 from app.models import Candidate, Event, Media
 
-RUBRIC = (Path(__file__).parent / "rubric.md").read_text(encoding="utf-8")
 SCORING_DIR = REPO_ROOT / "data" / "scoring"
 THUMBS_DIR = REPO_ROOT / "data" / "storage"
 # Weighted total, 0-10. Pillar mix steers pillar_fit inside the rubric, not here.

@@ -23,3 +23,8 @@ dist/
 .wrangler/
 .dev.vars
 .neon
+
+# personal config you supply — kept out so a rubric or voice guide about YOU
+# can't be committed to a public fork by accident. Delete these two lines to track your own.
+api/app/rubric.md
+docs/voice.md

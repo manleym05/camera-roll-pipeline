@@ -41,7 +41,7 @@ pick a caption, mark it done.
 **Scoring and captions** are deliberately decoupled from any particular model. The API exports a
 packet per event, something writes a `<event_id>.result.json`, and an import step validates and
 stores it. Today that something is Claude; it could be an API batch job or you. See
-`api/app/rubric.md` and `api/app/caption_brief.md`.
+`api/app/scoring_brief.md` and `api/app/caption_brief.md`.
 
 ## Quick start
 
@@ -79,15 +79,41 @@ cached, so later runs only process new files.
 
 | What | Where |
 |---|---|
-| Whose feed this is, and what it's for | `api/app/rubric.md` — rewrite the top block |
-| How you sound in captions | `docs/voice.md` — copy `docs/voice.example.md` and write your own |
+| Whose feed this is, and what it's for | `api/app/rubric.md` — **you write this**, see below |
+| How you sound in captions | `docs/voice.md` — **you write this**, start from `docs/voice.example.md` |
 | Scoring weights | `api/app/scoring.py` |
 | Home geofence (never postable) | `HOMES` in `.env` |
 | A second person's camera roll | `OWNER_DIRS` in `.env`; photos keep their owner and carry a credit |
 | Words banned from a given platform | `INSTAGRAM_BLOCKED_TERMS` / `X_BLOCKED_TERMS` |
 
-The two files that most affect output quality are `rubric.md` and `docs/voice.md`. Both ship as
-templates on purpose — they describe a person, and that person isn't you.
+### Writing your scoring rubric
+
+`api/app/rubric.md` is not in the repo — it describes a specific person's feed, so shipping one
+would only teach you to copy someone else's taste. Both it and `docs/voice.md` are gitignored by
+default so a rubric about you doesn't end up in a public fork; drop those lines if you'd rather
+track your own.
+
+Write it as a prompt addressed to whatever model does the scoring. It needs to say whose feed
+this is and what the feed is for, then define each score the importer expects. `scoring.py`
+validates a `CandidateScore` per photo, so the rubric must explain all of:
+
+| Field | What you're asking the model to judge |
+|---|---|
+| `technical` | 0–10 sharpness, exposure, framing |
+| `owner` | 0–10 is the feed's owner in it, and doing something |
+| `story` | 0–10 does it say anything beyond pretty scenery |
+| `pillar` | which of `work`, `tech`, `fitness`, `travel` it serves (edit the `Literal` in `scoring.py` for different pillars) |
+| `pillar_fit` | 0–10 how well it serves that pillar |
+| `variety` | 0–10 what it adds that the event's other good shots don't |
+| `never_post` | a hard veto, with `never_post_reason` |
+| `rationale` | one sentence you can skim |
+
+The final rank is a weighted sum — technical 20%, owner 25%, story 25%, pillar fit 20%,
+variety 10% — set in `WEIGHTS` in `scoring.py`. A landscape account would weight `technical` and
+`story` far above `owner`.
+
+`api/app/scoring_brief.md` is the instruction sheet handed to the scorer alongside each packet;
+it points at your rubric.
 
 ## Deploying the review page
 
