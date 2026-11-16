@@ -11,12 +11,9 @@ from brand_agent.config import settings
 MODEL = "ViT-B-32"
 PRETRAINED = "laion2b_s34b_b79k"
 
-# Zero-shot tag vocabulary. Pillars first, then scene detail for search and ranking.
-TAG_PROMPTS = {
-    "pillar:travel": "a travel photo of a landmark, city street, beach or mountain",
-    "pillar:fitness": "a photo of someone working out, running, lifting weights or at a gym",
-    "pillar:work": "a photo of an office, laptop, meeting, conference or someone presenting",
-    "pillar:tech": "a photo of computers, code on a screen, gadgets or technology",
+# Zero-shot tag vocabulary. Scene detail for search and ranking; the pillar half is
+# config, so changing PILLARS means changing PILLAR_PROMPTS to describe them to CLIP.
+SCENE_PROMPTS = {
     "scene:food": "a photo of food or a meal at a restaurant",
     "scene:people": "a photo of a group of friends",
     "scene:selfie": "a selfie",
@@ -25,6 +22,10 @@ TAG_PROMPTS = {
     "scene:water": "a photo of the ocean, a lake or a boat",
     "scene:architecture": "a photo of buildings and architecture",
     "scene:event": "a photo of a crowd at a concert, game or event",
+}
+TAG_PROMPTS = {
+    **{f"pillar:{name}": prompt for name, prompt in settings.pillar_prompts.items()},
+    **SCENE_PROMPTS,
 }
 # Screenshots and paper are never posted.
 DOC_PROMPTS = {

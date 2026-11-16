@@ -8,7 +8,8 @@ from pydantic import ValidationError
 from sqlalchemy import select
 from app.events import Cluster, Point, _match, _remerge
 from app.models import Candidate, Event, Media
-from app.scoring import EventScore, apply_result, total
+from app.config import settings
+from app.scoring import CandidateScore, EventScore, apply_result, total
 
 T0 = datetime(2020, 3, 1, 12, tzinfo=timezone.utc)
 
@@ -99,3 +100,12 @@ def test_rebuild_rematches_and_remerges_a_manual_merge():
     # without a recorded merge, two clusters inside one old event stay apart
     merged.merged_from = []
     assert len(_remerge([_cluster(T0, 10), _cluster(T0 + timedelta(days=4), 10)], matches)[0]) == 2
+
+
+def test_pillar_must_be_configured(monkeypatch):
+    """Pillars are config, not a fixed list: unknown values are rejected, new ones accepted."""
+    with pytest.raises(ValidationError, match="is not one of"):
+        CandidateScore(**_score("c1", 5) | {"pillar": "gardening"})
+
+    monkeypatch.setattr(settings, "pillars", ["gardening", "baking"])
+    assert CandidateScore(**_score("c1", 5) | {"pillar": "gardening"}).pillar == "gardening"

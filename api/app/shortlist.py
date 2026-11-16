@@ -17,8 +17,15 @@ from app.config import settings
 from app.models import Candidate, Event, Media
 
 PER_EVENT = 30
-# Content mix from SPEC: work 35%, tech 25%, fitness 20%, travel 20%
-PILLAR_WEIGHTS = {"work": 0.35, "tech": 0.25, "fitness": 0.20, "travel": 0.20}
+
+
+def pillar_weights() -> dict[str, float]:
+    """How much each pillar counts when shortlisting. Equal unless PILLAR_WEIGHTS says otherwise."""
+    if settings.pillar_weights:
+        return settings.pillar_weights
+    n = len(settings.pillars) or 1
+    return {p: 1.0 / n for p in settings.pillars}
+
 # Share of picks reserved for timeline coverage; the rest go to the highest base scores.
 SPREAD_SHARE = 0.5
 PILLAR_TAG_MIN = 0.5
@@ -34,9 +41,9 @@ class Item:
 
 
 def pillar_signal(tags: dict) -> float:
-    """Strongest pillar tag, weighted by the brand mix. Scene tags with people get a nudge."""
+    """Strongest pillar tag, weighted by PILLAR_WEIGHTS. Scene tags with people get a nudge."""
     best = max(
-        ((tags.get(f"pillar:{p}") or 0) * (0.6 + w) for p, w in PILLAR_WEIGHTS.items()), default=0.0
+        ((tags.get(f"pillar:{p}") or 0) * (0.6 + w) for p, w in pillar_weights().items()), default=0.0
     )
     people = max(tags.get("scene:selfie") or 0, tags.get("scene:people") or 0)
     return best + 0.3 * people
@@ -70,8 +77,8 @@ def select_candidates(items: list[Item], n: int = PER_EVENT) -> list[Item]:
         if k not in best or score[i.id] > score[best[k].id]:
             best[k] = i
     chosen.update(i.id for i in best.values())
-    # 2. Pillar-tagged shots (gym, laptop, stage) are rare and on-brand: reserve room for them.
-    tagged = [i for i in items if any((i.tags or {}).get(f"pillar:{p}", 0) >= PILLAR_TAG_MIN for p in PILLAR_WEIGHTS)]
+    # 2. Pillar-tagged shots (gym, laptop, stage) are rare and on-topic: reserve room for them.
+    tagged = [i for i in items if any((i.tags or {}).get(f"pillar:{p}", 0) >= PILLAR_TAG_MIN for p in settings.pillars)]
     for i in sorted(tagged, key=lambda i: score[i.id], reverse=True)[: n // 3]:
         if len(chosen) < n:
             chosen.add(i.id)

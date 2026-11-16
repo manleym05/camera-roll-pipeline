@@ -10,9 +10,8 @@ The scorer only ever sees `c1..cN` labels; packets map them back to media ids.
 import json
 import uuid
 from pathlib import Path
-from typing import Literal
 
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError, field_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -21,7 +20,8 @@ from app.models import Candidate, Event, Media
 
 SCORING_DIR = REPO_ROOT / "data" / "scoring"
 THUMBS_DIR = REPO_ROOT / "data" / "storage"
-# Weighted total, 0-10. Pillar mix steers pillar_fit inside the rubric, not here.
+# Weighted total, 0-10. Which pillars exist is config (PILLARS); how well a photo
+# serves its pillar is the scorer's pillar_fit. Neither is decided here.
 WEIGHTS = {"technical": 0.2, "owner": 0.25, "story": 0.25, "pillar_fit": 0.2, "variety": 0.1}
 # Labels the owner controls; Claude's proposal is stored alongside but never replaces them.
 KEEP_LABEL_SOURCES = {"manual"}
@@ -34,12 +34,20 @@ class CandidateScore(BaseModel):
     technical: float = Score
     owner: float = Score
     story: float = Score
-    pillar: Literal["work", "tech", "fitness", "travel"]
+    pillar: str
     pillar_fit: float = Score
     variety: float = Score
     never_post: bool
     never_post_reason: str | None = None
     rationale: str
+
+    @field_validator("pillar")
+    @classmethod
+    def known_pillar(cls, v: str) -> str:
+        """Pillars are configurable, so validate against PILLARS rather than a fixed list."""
+        if settings.pillars and v not in settings.pillars:
+            raise ValueError(f"pillar {v!r} is not one of {settings.pillars}")
+        return v
 
 
 class EventScore(BaseModel):
@@ -100,6 +108,7 @@ def export_packets(session: Session, only_unscored: bool = True) -> list[Path]:
             "current_label": ev.label,
             "place": ev.place,
             "owners": ev.owners,
+            "pillars": settings.pillars,
             "candidates": items,
         }
         path = packet_path(ev.id)

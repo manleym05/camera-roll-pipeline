@@ -10,7 +10,7 @@ For each event packet you're given (`<event_id>.json`):
 3. View **every** thumbnail with the Read tool (they're JPEGs, ~576x768). Don't skip any, and don't guess from tags.
 4. Write `<event_id>.result.json` in the same folder: one JSON object matching `schema.json`:
    `{"event_name", "summary", "carousel": [refs, max 10], "candidates": [{"ref", "technical", "owner", "story", "pillar", "pillar_fit", "variety", "never_post", "never_post_reason", "rationale"}]}`
-   - Include every ref from the packet exactly once. Scores are numbers 0-10. `pillar` is one of work, tech, fitness, travel.
+   - Include every ref from the packet exactly once. Scores are numbers 0-10. `pillar` must be one of the values in the packet's `pillars` list; anything else is rejected on import.
    - `never_post_reason` is null unless `never_post` is true.
 5. Check the file parses: `python -c "import json,sys;d=json.load(open(sys.argv[1]));print(len(d['candidates']))" <file>`, and the count must match the packet.
 

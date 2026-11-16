@@ -29,6 +29,7 @@ const PERIODS = [
 
 // Meta allows 20 per carousel; X takes 4.
 const LIMIT: Record<string, number> = { instagram: 20, x: 4 }
+// Cosmetic short labels, keyed by pillar name. Unlisted pillars fall back to the name itself.
 const PILLAR_EMOJI: Record<string, string> = { fitness: 'fit', work: 'work', travel: 'trip', tech: 'tech' }
 
 function Picked({

@@ -35,6 +35,13 @@ class Settings(BaseSettings):
     primary_owner: str = "owner"
     # Display names for photo credits
     owner_names: dict[str, str] = {"owner": "the owner", "partner": "Partner"}
+    # Content pillars: the categories a photo can serve. Rename, drop or add freely —
+    # the scorer is told these exact values and rejects anything else.
+    # e.g. PILLARS='["running","cooking","family"]'
+    pillars: list[str] = ["work", "tech", "fitness", "travel"]
+    # Optional shortlisting bias, e.g. PILLAR_WEIGHTS='{"work": 0.35, "travel": 0.2}'.
+    # Empty means every pillar counts the same. Pillars left out of a non-empty map get 0.
+    pillar_weights: dict[str, float] = {}
     # Words a caption must never contain, per platform. Useful when an employer,
     # client or project name belongs on one feed but not another.
     # e.g. INSTAGRAM_BLOCKED_TERMS='["acme corp"]'

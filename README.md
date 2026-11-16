@@ -81,7 +81,9 @@ cached, so later runs only process new files.
 |---|---|
 | Whose feed this is, and what it's for | `api/app/rubric.md` — **you write this**, see below |
 | How you sound in captions | `docs/voice.md` — **you write this**, start from `docs/voice.example.md` |
-| Scoring weights | `api/app/scoring.py` |
+| Your content pillars | `PILLARS` in `.env`, plus `PILLAR_PROMPTS` in `agent/brand_agent/config.py` |
+| Shortlisting bias between pillars | `PILLAR_WEIGHTS` in `.env` (empty = all equal) |
+| Scoring weights | `WEIGHTS` in `api/app/scoring.py` |
 | Home geofence (never postable) | `HOMES` in `.env` |
 | A second person's camera roll | `OWNER_DIRS` in `.env`; photos keep their owner and carry a credit |
 | Words banned from a given platform | `INSTAGRAM_BLOCKED_TERMS` / `X_BLOCKED_TERMS` |
@@ -102,7 +104,7 @@ validates a `CandidateScore` per photo, so the rubric must explain all of:
 | `technical` | 0–10 sharpness, exposure, framing |
 | `owner` | 0–10 is the feed's owner in it, and doing something |
 | `story` | 0–10 does it say anything beyond pretty scenery |
-| `pillar` | which of `work`, `tech`, `fitness`, `travel` it serves (edit the `Literal` in `scoring.py` for different pillars) |
+| `pillar` | which of your configured `PILLARS` it serves |
 | `pillar_fit` | 0–10 how well it serves that pillar |
 | `variety` | 0–10 what it adds that the event's other good shots don't |
 | `never_post` | a hard veto, with `never_post_reason` |
@@ -111,6 +113,19 @@ validates a `CandidateScore` per photo, so the rubric must explain all of:
 The final rank is a weighted sum — technical 20%, owner 25%, story 25%, pillar fit 20%,
 variety 10% — set in `WEIGHTS` in `scoring.py`. A landscape account would weight `technical` and
 `story` far above `owner`.
+
+### Pillars
+
+A pillar is one of the few things your feed is *about*. They default to `work`, `tech`, `fitness`
+and `travel`, but they are only a default — set `PILLARS` to whatever yours are.
+
+Changing them touches two places. `PILLARS` in `.env` is the list the scorer is given and
+validated against. `PILLAR_PROMPTS` in `agent/brand_agent/config.py` is how CLIP recognises each
+one in a photo, so each entry has to describe what the pillar *looks* like — "a photo of someone
+cooking in a home kitchen", not "cooking". Keys in the two must match.
+
+`PILLAR_WEIGHTS` optionally biases shortlisting toward some pillars; leave it empty and they
+all count equally.
 
 `api/app/scoring_brief.md` is the instruction sheet handed to the scorer alongside each packet;
 it points at your rubric.

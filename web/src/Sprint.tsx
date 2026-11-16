@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api, dateRange, type EventSummary } from './api'
 
-// SPEC: 30 posts plus 5 backups, with at least 4 fitness and 4 work moments, one per day in date order.
+// A sprint is a run of posts picked one per day in date order, plus spares.
 const PICKS = 30
 const BACKUPS = 5
-const MIN_PILLAR = { fitness: 4, work: 4 }
+// Optional minimum per content pillar, so a run doesn't end up all one thing.
+// Keys are pillar names from the API's PILLARS setting, e.g. { fitness: 4, work: 4 }.
+// Leave empty for no quotas.
+const MIN_PILLAR: Record<string, number> = {}
 
 type Filter = 'all' | 'pick' | 'backup'
 
@@ -21,7 +24,7 @@ export default function Sprint() {
   const picks = live.filter((e) => e.sprint === 'pick')
   const backups = live.filter((e) => e.sprint === 'backup')
   const day = new Map(picks.map((e, i) => [e.id, i + 1]))
-  // A pick counts toward a pillar when any of its top photos has it (the camera roll is mostly travel).
+  // A pick counts toward a pillar when any of its top photos carries it.
   const pillarCount = (p: string) => picks.filter((e) => e.pillars[p]).length
   const captioned = picks.filter((e) => e.drafted > 0 && e.approved === e.drafted).length
   const shown = filter === 'all' ? live : live.filter((e) => e.sprint === filter)
@@ -42,8 +45,13 @@ export default function Sprint() {
   const tiles: [string, number, number][] = [
     ['Picks', picks.length, PICKS],
     ['Backups', backups.length, BACKUPS],
-    ['Fitness', pillarCount('fitness'), MIN_PILLAR.fitness],
-    ['Work', pillarCount('work'), MIN_PILLAR.work],
+    ...Object.entries(MIN_PILLAR).map(
+      ([name, min]): [string, number, number] => [
+        name.charAt(0).toUpperCase() + name.slice(1),
+        pillarCount(name),
+        min,
+      ],
+    ),
     ['Captions', captioned, picks.length || PICKS],
   ]
 

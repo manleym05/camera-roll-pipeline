@@ -14,6 +14,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { api, dateRange, type Candidate, type EventDetail } from './api'
 import Captions from './Captions'
 
+// Cosmetic only, keyed by pillar name. Unlisted pillars just render without a glyph.
 const PILLAR_EMOJI: Record<string, string> = { work: '💼', tech: '💻', fitness: '🏋️', travel: '✈️' }
 
 export default function EventView({ id }: { id: string }) {
