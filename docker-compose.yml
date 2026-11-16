@@ -1,0 +1,16 @@
+# Local dev database. Production runs on Neon (same Postgres + pgvector).
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped  # comes back with Docker Desktop, so the review page works after a reboot
+    environment:
+      POSTGRES_USER: brand
+      POSTGRES_PASSWORD: brand
+      POSTGRES_DB: brand
+    ports:
+      - "5433:5432"
+    volumes:
+      - brand-db:/var/lib/postgresql/data
+
+volumes:
+  brand-db:

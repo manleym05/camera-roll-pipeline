@@ -1,0 +1,25 @@
+# secrets
+.env
+.env.*
+!.env.example
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+*.egg-info/
+
+# local data — never commit media or caches
+data/
+sample/
+*.sqlite3
+
+# node
+node_modules/
+dist/
+
+# cloudflare
+.wrangler/
+.dev.vars
+.neon
